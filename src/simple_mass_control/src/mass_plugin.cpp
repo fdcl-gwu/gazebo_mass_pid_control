@@ -4,6 +4,9 @@
 #include <gazebo/common/common.hh>
 #include <ignition/math/Vector3.hh>
 
+#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/Wrench.h>
+
 #include <ros/ros.h>
 #include "std_msgs/String.h"
 
@@ -28,14 +31,36 @@ public:
 
     void update(void)
     {
-        this->model->SetLinearVel(ignition::math::Vector3d(0.3, 0, 0.3));
-        // this->link->SetForce(ignition::math::Vector3d(0.5, 0.0, 9.9));
+        // this->model->SetLinearVel(ignition::math::Vector3d(0.3, 0, 0.3));
         
         state.header.stamp = ros::Time::now();
         state.header.frame_id = (std::string) "mass_states";
+
+        ignition::math::Pose3d pose = this->model->WorldPose();
+        vector_to_msg(pose.Pos(), state.x);
         
+        ignition::math::Quaterniond rot = pose.Rot();
+        state.R.x = rot.Yaw();
+        state.R.y = rot.Pitch();
+        state.R.z = rot.Roll();
+
+        ignition::math::Vector3d vec3;
+
+        vector_to_msg(this->model->WorldLinearVel(), state.v);
+        vector_to_msg(this->model->WorldAngularVel(), state.W);
+        vector_to_msg(this->model->WorldLinearAccel(), state.a);
+
         this->pub_state.publish(state);
     }
+
+    void vector_to_msg(
+            ignition::math::Vector3d vec, geometry_msgs::Vector3 &msg_vec
+    )
+    {
+       msg_vec.x = vec[0];
+       msg_vec.y = vec[1];
+       msg_vec.z = vec[2];
+    } 
 
 private:
     physics::ModelPtr model;
