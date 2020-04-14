@@ -136,6 +136,7 @@
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
+      <plugin name="mass_plugin" filename="libmass_plugin.so"/>
     </model>
     <state world_name='default'>
       <sim_time>228 551000000</sim_time>
