@@ -37,7 +37,7 @@ public:
 
     void update(void)
     {
-        this->model->SetLinearVel(ignition::math::Vector3d(0.3, 0, 0.3));
+        // this->model->SetLinearVel(ignition::math::Vector3d(0.3, 0, 0.3));
         
         state.header.stamp = ros::Time::now();
         state.header.frame_id = (std::string) "mass_states";
@@ -50,13 +50,27 @@ public:
         state.R.y = rot.Pitch();
         state.R.z = rot.Roll();
 
-        ignition::math::Vector3d vec3;
-
         vector_to_msg(this->model->WorldLinearVel(), state.v);
         vector_to_msg(this->model->WorldAngularVel(), state.W);
         vector_to_msg(this->model->WorldLinearAccel(), state.a);
 
         this->pub_state.publish(state);
+
+        ignition::math::Vector3d xd(5.0, 0.0, 0.5);
+        ignition::math::Vector3d vd(0.0, 0.0, 0.0);
+        
+        ex = pose.Pos() - xd;
+        ev = this->model->WorldLinearVel() - vd;
+        ei = ei + ex * 0.001;
+
+        force = - 10.0 * ex - 8.0 * ev - 5.0 * ei;
+        double m = 1.0;
+        double g = 9.8;
+        force[2] = force[2] + m * g;
+
+        this->link->SetForce(force);
+
+        std::cout << ex << std::endl;
     }
 
 
@@ -78,6 +92,11 @@ private:
     ros::Publisher pub_state; 
     ros::NodeHandle n;
     simple_mass_control::states state;
+
+    ignition::math::Vector3d ex;
+    ignition::math::Vector3d ev;
+    ignition::math::Vector3d ei;
+    ignition::math::Vector3d force;
 };
 
 
