@@ -30,6 +30,7 @@ public:
     ~MassControl(void);
 
     void update_states(void);
+    void print_msg(void);
 
     static ignition::math::Vector3d x;
     static ignition::math::Vector3d v;

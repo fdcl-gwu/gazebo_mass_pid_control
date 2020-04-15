@@ -18,8 +18,10 @@
 
 #include "mass_control.hpp"
 
+
 ignition::math::Vector3d MassControl::x = ignition::math::Vector3d::Zero;
 ignition::math::Vector3d MassControl::v = ignition::math::Vector3d::Zero;
+
 
 int main(int argc, char **argv)
 {
@@ -34,9 +36,10 @@ int main(int argc, char **argv)
 
     MassControl controller(&n);
 
-    // ros::Timer timer_uav_control = n.createTimer( \
-    //     ros::Duration(0.01), std::bind(&UavControl::update, Uav)
-    // );
+    ros::Timer timer_uav_control = n.createTimer( \
+        ros::Duration(0.01), std::bind(&MassControl::print_msg, controller)
+    );
+
     ros::spin();
 
     return 0;

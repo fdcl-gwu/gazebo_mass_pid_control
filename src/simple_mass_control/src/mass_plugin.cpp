@@ -30,6 +30,8 @@ public:
         // simulation iteration.
         this->update_connection = event::Events::ConnectWorldUpdateBegin( \
             std::bind(&MassPlugin::update, this));
+
+       // Start the ros publisher node.
         this->pub_state = n.advertise<simple_mass_control::states>( \
             "states", 10);
     }
@@ -37,11 +39,14 @@ public:
 
     void update(void)
     {
-        // this->model->SetLinearVel(ignition::math::Vector3d(0.3, 0, 0.3));
-        
+        // The "state" message is defined in "/msg" directory, and will be 
+        // converted into "states.h" inside "devel/include" when you call the
+        // "catkin_make".
+
         state.header.stamp = ros::Time::now();
         state.header.frame_id = (std::string) "mass_states";
 
+        // "pose" include both position and the rotation.
         ignition::math::Pose3d pose = this->model->WorldPose();
         vector_to_msg(pose.Pos(), state.x);
         
@@ -50,27 +55,33 @@ public:
         state.R.y = rot.Pitch();
         state.R.z = rot.Roll();
 
+        // Get other states of the model.
         vector_to_msg(this->model->WorldLinearVel(), state.v);
         vector_to_msg(this->model->WorldAngularVel(), state.W);
         vector_to_msg(this->model->WorldLinearAccel(), state.a);
 
+        // Publish all the states of the model to the ros publisher.
         this->pub_state.publish(state);
 
+        // Define desired states.
         ignition::math::Vector3d xd(5.0, 0.0, 0.5);
         ignition::math::Vector3d vd(0.0, 0.0, 0.0);
         
+        // Calculate errors.
         ex = pose.Pos() - xd;
         ev = this->model->WorldLinearVel() - vd;
         ei = ei + ex * 0.001;
 
+        // Simple PID control.
         force = - 10.0 * ex - 8.0 * ev - 5.0 * ei;
         double m = 1.0;
         double g = 9.8;
         force[2] = force[2] + m * g;
 
+        // Apply the control force determined with PID controller.
         this->link->SetForce(force);
 
-        std::cout << ex << std::endl;
+        // std::cout << ex << std::endl;
     }
 
 
@@ -100,9 +111,9 @@ private:
 };
 
 
-// Register this plugin with the simulator
+// Register this plugin with the simulator.
 GZ_REGISTER_MODEL_PLUGIN(MassPlugin)
 
 
-}  // end of namespace gazebo
+}  // End of namespace gazebo.
 

@@ -26,7 +26,15 @@ void MassControl::update_states(
 {
     msg_to_vector(msg->x, x);
     msg_to_vector(msg->v, v);
-    // std::cout << x << std::endl;
+}
+
+
+void MassControl::print_msg(void)
+{
+    std::cout << "\n\nstates:"
+        << "\n\tx: " << x 
+        << "\n\tv: " << v
+        << std::endl;
 }
 
 
